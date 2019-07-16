@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -78,39 +79,43 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                //Advertise To All BLE Clients
-                advertise();
 
 
-//                String typedText = payloadText.getText().toString();
-//
-//                String []payloads = typedText.split("\n");
-//                List<String> payloadsTrimed = new ArrayList();
-//
-//                for(String tem : payloads){
-//                    if(tem.trim().length() != 0){
-//                        payloadsTrimed.add(tem.trim());
-//                    }
-//                }
-//
-//                ArrayList<String> payloadChunck = new ArrayList<>();
-//                if(payloadsTrimed.contains("/0")){
-//
+
+                String typedText = payloadText.getText().toString();
+
+                String []payloads = typedText.split("\n");
+                ArrayList<String> payloadsTrimed = new ArrayList();
+
+                for(String tem : payloads){
+                    if(tem.trim().length() != 0){
+                        payloadsTrimed.add(tem.trim());
+                    }
+                }
+
+                //ArrayList<String> payloadChunck = new ArrayList<>();
+
+                advertise(payloadsTrimed);
+                //payloadChunck.clear();
+                //if(payloadsTrimed.contains("/0")){
+
 //                        for(int i=1; i<=5; i++){
 //                            payloadChunck.add(payloadsTrimed.get(i-1));
-//                            sendPayload(payloadChunck);
+//                            //Advertise To All BLE Clients
+//                            advertise(payloadChunck);
 //                            payloadChunck.clear();
 //                        }
 //
 //                        for(int p=6; p<=10; p++){
 //                            payloadChunck.add(payloadsTrimed.get(p-1));
-//                            sendPayload(payloadChunck);
+//                            //Advertise To All BLE Clients
+//                            advertise(payloadChunck);
 //                            payloadChunck.clear();
 //                        }
-//
-//
-//                    }
-//
+
+
+                   // }
+
                 }
 
 
@@ -121,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     //Advertise To All BLE Clients
-    public void advertise(){
+    public void advertise(ArrayList<String> dataSet){
 
         BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
 
@@ -129,35 +134,40 @@ public class MainActivity extends AppCompatActivity {
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
                 .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
                 .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
-                .setConnectable( false )
+                .setTimeout(0)
+                .setConnectable( true )
                 .build();
 
         ParcelUuid pUuid = new ParcelUuid( UUID.fromString( getString( R.string.ble_uuid ) ) );
 
-        AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeDeviceName( true )
-                .addServiceData( pUuid, "a".getBytes( Charset.forName( "UTF-8" ) ) )
-                .build();
+        for(String dataItem : dataSet){
+            AdvertiseData data = new AdvertiseData.Builder()
+                    .setIncludeDeviceName( true )
+                    .addServiceData( pUuid, dataItem.getBytes( Charset.forName( "UTF-8" ) ) )
+                    .build();
 
 
-        //.addServiceData( pUuid, "a".getBytes( Charset.forName( "UTF-8" ) ) )
-        //addServiceUuid(ParcelUuid.fromString(SERVICE_DEVICE_INFORMATION.toString()))
-        //.addServiceUuid( pppp )
+            //.addServiceData( pUuid, "a".getBytes( Charset.forName( "UTF-8" ) ) )
+            //addServiceUuid(ParcelUuid.fromString(SERVICE_DEVICE_INFORMATION.toString()))
+            //.addServiceUuid( pppp )
 
-        AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
-            @Override
-            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                super.onStartSuccess(settingsInEffect);
-            }
+            AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
+                @Override
+                public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+                    super.onStartSuccess(settingsInEffect);
+                }
 
-            @Override
-            public void onStartFailure(int errorCode) {
-                Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
-                super.onStartFailure(errorCode);
-            }
-        };
+                @Override
+                public void onStartFailure(int errorCode) {
+                    Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
+                    super.onStartFailure(errorCode);
+                }
+            };
+            advertiser.startAdvertising( settings, data, advertisingCallback );
+        }
 
-        advertiser.startAdvertising( settings, data, advertisingCallback );
+
+
 
     }
 
